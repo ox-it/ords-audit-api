@@ -17,13 +17,105 @@ package uk.ac.ox.it.ords.api.audit.resources;
 
 import static org.junit.Assert.assertEquals;
 
-import javax.ws.rs.core.Response;
-
-import org.apache.cxf.jaxrs.client.WebClient;
+import java.util.List;
+import javax.ws.rs.core.GenericType;
 import org.junit.Test;
-
 import uk.ac.ox.it.ords.security.model.Audit;
 
 public class AuditResourceTest extends AbstractResourceTest{
+
+	
+	@Test
+	public void voidCreateAuditRecordsInvalid(){
+		loginUsingSSO("admin", "admin");
+		assertEquals(400, getClient().path("/").post(null).getStatus());
+		logout();
+	}
+	
+	@Test
+	public void voidCreateAuditRecordsUnauth(){
+		Audit audit = new Audit();
+		audit.setAuditType(Audit.AuditType.CREATE_PROJECT.name());
+		audit.setProjectId(1);
+		audit.setUserId("pingu");
+		audit.setMessage("pingu has created a project");
+		
+		assertEquals(403, getClient().path("/").post(audit).getStatus());
+	}
+	
+	@Test
+	public void voidCreateAuditRecords(){
+		loginUsingSSO("admin", "admin");
+		
+		Audit audit = new Audit();
+		audit.setAuditType(Audit.AuditType.CREATE_PROJECT.name());
+		audit.setProjectId(1);
+		audit.setUserId("pingu");
+		audit.setMessage("pingu has created a project");
+		
+		assertEquals(201, getClient().path("/").post(audit).getStatus());
+		
+		List<Audit> audits = getClient().path("/project/1").get().readEntity(new GenericType<List<Audit>>(){});
+		assertEquals(1, audits.size());
+		assertEquals(1, audits.get(0).getProjectId());
+		assertEquals(Audit.AuditType.CREATE_PROJECT.name().replace("_", " "), audits.get(0).getAuditType());
+		assertEquals("pingu", audits.get(0).getUserId());
+		assertEquals("pingu has created a project", audits.get(0).getMessage());
+		
+		audits = getClient().path("/user/pingu").get().readEntity(new GenericType<List<Audit>>(){});
+		assertEquals(1, audits.size());
+		assertEquals(1, audits.get(0).getProjectId());
+		assertEquals(Audit.AuditType.CREATE_PROJECT.name().replace("_", " "), audits.get(0).getAuditType());
+		assertEquals("pingu", audits.get(0).getUserId());
+		assertEquals("pingu has created a project", audits.get(0).getMessage());
+		
+		logout();
+	}
+	
+	@Test
+	public void voidViewAuditAsUser(){
+		
+		loginUsingSSO("pingu", "pingu");
+		
+		List<Audit> audits = getClient().path("/project/1").get().readEntity(new GenericType<List<Audit>>(){});
+		assertEquals(1, audits.size());
+		assertEquals(1, audits.get(0).getProjectId());
+		assertEquals(Audit.AuditType.CREATE_PROJECT.name().replace("_", " "), audits.get(0).getAuditType());
+		assertEquals("pingu", audits.get(0).getUserId());
+		assertEquals("pingu has created a project", audits.get(0).getMessage());
+		
+		audits = getClient().path("/user/pingu").get().readEntity(new GenericType<List<Audit>>(){});
+		assertEquals(1, audits.size());
+		assertEquals(1, audits.get(0).getProjectId());
+		assertEquals(Audit.AuditType.CREATE_PROJECT.name().replace("_", " "), audits.get(0).getAuditType());
+		assertEquals("pingu", audits.get(0).getUserId());
+		assertEquals("pingu has created a project", audits.get(0).getMessage());
+		
+		logout();
+	}
+	
+	@Test
+	public void viewProjectAuditUnauth(){
+		
+		loginUsingSSO("pinga", "pinga");
+		assertEquals(403, getClient().path("/project/1").get().getStatus());
+		logout();
+		assertEquals(403, getClient().path("/project/1").get().getStatus());
+		
+		
+	}
+	
+	@Test
+	public void viewUserAuditUnauth(){
+		
+		loginUsingSSO("pinga", "pinga");
+		assertEquals(403, getClient().path("/user/pingu").get().getStatus());
+		logout();
+		assertEquals(401, getClient().path("/user/pingu1").get().getStatus());
+		
+		
+	}
+	
+	
 
 }

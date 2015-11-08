@@ -42,13 +42,13 @@ import uk.ac.ox.it.ords.api.audit.server.ValidationExceptionMapper;
 import uk.ac.ox.it.ords.security.AbstractShiroTest;
 import uk.ac.ox.it.ords.security.model.Permission;
 import uk.ac.ox.it.ords.security.model.UserRole;
+import uk.ac.ox.it.ords.security.services.PermissionsService;
 import uk.ac.ox.it.ords.security.services.impl.hibernate.HibernateUtils;
 
 public class AbstractResourceTest extends AbstractShiroTest {
 
 	protected final static String ENDPOINT_ADDRESS = "local://audit-api";
 	protected static Server server;
-	private static boolean dbCreated = false;
 	protected static void startServer() throws Exception {
 
 	}
@@ -63,39 +63,61 @@ public class AbstractResourceTest extends AbstractShiroTest {
 		return client;
 	}
 	
-	public static void createTestUsersAndRoles(){
+	public static void createTestUsersAndRoles() throws Exception{
 		//
 		// Set up the database
 		//
 		//
 		// Set up the test users and their permissions
 		//
-		Session session = HibernateUtils.getSessionFactory().getCurrentSession();
-		Transaction transaction = session.beginTransaction();
-		
 		//
 		// Add our test permissions
 		//
 		Permission permissionObject = new Permission();
-		permissionObject.setRole("api");
+		permissionObject.setRole("admin");
 		permissionObject.setPermission(AuditPermissions.CREATE_AUDIT_RECORD);
-		session.save(permissionObject);
+		PermissionsService.Factory.getInstance().createPermission(permissionObject);
+		
+		permissionObject = new Permission();
+		permissionObject.setRole("admin");
+		permissionObject.setPermission(AuditPermissions.VIEW_ALL_AUDIT_RECORDS);
+		PermissionsService.Factory.getInstance().createPermission(permissionObject);	
+		
+		permissionObject = new Permission();
+		permissionObject.setRole("user");
+		permissionObject.setPermission(AuditPermissions.VIEW_AUDIT_RECORD_FOR_PROJECT(1));
+		PermissionsService.Factory.getInstance().createPermission(permissionObject);	
 		
 		//
 		// Add test users to roles
 		//
-		UserRole api = new UserRole();
-		api.setPrincipalName("ords-other-api");
-		api.setRole("api");
-		session.save(api);
+		Session session = HibernateUtils.getSessionFactory().getCurrentSession();
+		Transaction transaction = session.beginTransaction();	
+		UserRole admin = new UserRole();
+		admin.setPrincipalName("admin");
+		admin.setRole("admin");
+		session.save(admin);
+		transaction.commit();
+		HibernateUtils.closeSession();	
+		
+		session = HibernateUtils.getSessionFactory().getCurrentSession();
+		transaction = session.beginTransaction();	
+		UserRole user = new UserRole();
+		user.setPrincipalName("pingu");
+		user.setRole("user");
+		session.save(user);
+		transaction.commit();
+		HibernateUtils.closeSession();	
 		
 		//
-		// Commit our changes
+		// Clear the audit trail
 		//
-		transaction.commit();
+		session = HibernateUtils.getSessionFactory().getCurrentSession();
+		session.beginTransaction();	
+		session.createSQLQuery("truncate ordsaudit").executeUpdate();
+		session.getTransaction().commit();
 		HibernateUtils.closeSession();
 		
-		dbCreated = true;
 	}
 
 	/**
@@ -108,7 +130,7 @@ public class AbstractResourceTest extends AbstractShiroTest {
 		//
 		// Set up roles
 		//
-		if (!dbCreated) createTestUsersAndRoles();
+		createTestUsersAndRoles();
 		
 		//
 		// This is for unit testing only and uses the test.shiro.ini configuration
