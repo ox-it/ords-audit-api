@@ -4,10 +4,12 @@
 
 	<!-- Allow environment variables to override file-based defaults -->
    <system/>
+   <env />
+   
+    <!-- Server-level properties. Properties set here will override package properties -->
+	<properties fileName="/etc/ordsconfig/audit.properties" config-optional="true"/>
   
-  	<!--
-		This is the main properties
-	-->
+  	<!-- This is the default properties file -->
    <properties fileName="audit.properties"/>
 
 </configuration>
