@@ -73,6 +73,35 @@ public class AuditResourceTest extends AbstractResourceTest{
 	}
 	
 	@Test
+	public void voidCreateDatabaseAuditRecords(){
+		loginUsingSSO("admin", "admin");
+		
+		Audit audit = new Audit();
+		audit.setAuditType(Audit.AuditType.CREATE_PHYSICAL_DATABASE.name());
+		audit.setLogicalDatabaseId(11);
+		audit.setUserId("pingo");
+		audit.setMessage("pingo has created a database");
+		assertEquals(201, getClient().path("/").post(audit).getStatus());
+		
+		List<Audit> audits = getClient().path("/database/11").get().readEntity(new GenericType<List<Audit>>(){});
+		assertEquals(1, audits.size());
+		assertEquals(0, audits.get(0).getProjectId());
+		assertEquals(11, audits.get(0).getLogicalDatabaseId());
+		assertEquals(Audit.AuditType.CREATE_PHYSICAL_DATABASE.name().replace("_", " "), audits.get(0).getAuditType());
+		assertEquals("pingo", audits.get(0).getUserId());
+		assertEquals("pingo has created a database", audits.get(0).getMessage());
+		
+		audits = getClient().path("/user/pingo").get().readEntity(new GenericType<List<Audit>>(){});
+		assertEquals(1, audits.size());
+		assertEquals(11, audits.get(0).getLogicalDatabaseId());
+		assertEquals(Audit.AuditType.CREATE_PHYSICAL_DATABASE.name().replace("_", " "), audits.get(0).getAuditType());
+		assertEquals("pingo", audits.get(0).getUserId());
+		assertEquals("pingo has created a database", audits.get(0).getMessage());
+		
+		logout();
+	}
+	
+	@Test
 	public void voidViewAuditAsUser(){
 		
 		loginUsingSSO("pingu", "pingu");
