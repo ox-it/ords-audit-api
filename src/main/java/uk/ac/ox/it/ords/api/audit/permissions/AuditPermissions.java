@@ -30,5 +30,15 @@ public class AuditPermissions {
 	public static String VIEW_AUDIT_RECORD_FOR_PROJECT(int projectId){
 		return "project:view:"+projectId;
 	}
+	
+	/**
+	 * Get the permission string used to view the audit for a database.
+	 * 
+	 * @param logicalDatabaseId
+	 * @return the permission for viewing this specific database
+	 */
+	public static String VIEW_AUDIT_RECORD_FOR_DATABASE(int logicalDatabaseId){
+		return "database:view:"+logicalDatabaseId;
+	}
 
 }

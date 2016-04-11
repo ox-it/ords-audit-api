@@ -109,6 +109,36 @@ public class AuditResource {
 		return Response.ok(AuditService.Factory.getInstance().getAuditListForProject(id)).build();
 	}
 	
+	@ApiOperation(value="Gets audit records for a database")
+	@ApiResponses(value = { 
+			@ApiResponse(code = 200, message = "Audit records successfully returned.", response=Audit.class, responseContainer="List"),
+		    @ApiResponse(code = 400, message = "Invalid ID supplied."),
+		    @ApiResponse(code = 403, message = "Not authorized to view audit records for this database."),
+		    @ApiResponse(code = 404, message = "Database not found.")
+	})
+	// 
+	// These are used by upstream gateways; including them here makes it easier to use an API portal
+	//
+	@ApiImplicitParams({
+	    @ApiImplicitParam(name = "Version", value = "API version number", required = false, dataType = "string", paramType = "header"),
+	    @ApiImplicitParam(name = "Authorization", value = "API key", required = false, dataType = "string", paramType = "header"),
+	  })
+	@GET
+	@Path("/database/{id}")
+	@Produces(MediaType.APPLICATION_JSON)
+	public Response getAuditRecordsForDatabase(
+			 @PathParam("id") int id
+			) throws Exception{
+
+		if (!SecurityUtils.getSubject().isPermitted(AuditPermissions.VIEW_AUDIT_RECORD_FOR_DATABASE(id))
+			&& ! SecurityUtils.getSubject().isPermitted(AuditPermissions.VIEW_ALL_AUDIT_RECORDS)
+				){
+			return Response.status(403).build();
+		}
+
+		return Response.ok(AuditService.Factory.getInstance().getAuditListForDatabase(id)).build();
+	}
+	
 	@ApiOperation(value="Gets audit records for a user")
 	@ApiResponses(value = { 
 			@ApiResponse(code = 200, message = "Audit records successfully returned.", response=Audit.class, responseContainer="List"),
