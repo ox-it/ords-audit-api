@@ -24,7 +24,7 @@ public class AuditPermissions {
 	/**
 	 * Get the permission string used to view the audit for a project.
 	 * 
-	 * @param projectId
+	 * @param projectId the id of the project
 	 * @return the permission for viewing this specific project
 	 */
 	public static String VIEW_AUDIT_RECORD_FOR_PROJECT(int projectId){
@@ -34,7 +34,7 @@ public class AuditPermissions {
 	/**
 	 * Get the permission string used to view the audit for a database.
 	 * 
-	 * @param logicalDatabaseId
+	 * @param logicalDatabaseId the id of the logica database
 	 * @return the permission for viewing this specific database
 	 */
 	public static String VIEW_AUDIT_RECORD_FOR_DATABASE(int logicalDatabaseId){
