@@ -2,6 +2,8 @@
 
 The audit API for the Online Research Database Service (ORDS)
 
+![build status image](https://travis-ci.org/ox-it/ords-audit-api.svg?branch=master) [![Download](https://api.bintray.com/packages/scottbw/ords/ords-audit-api/images/download.svg) ](https://bintray.com/scottbw/ords/ords-audit-api/_latestVersion)
+
 ## API Documentation
 
 The API documentation can be found at /api/1.0/audit/swagger.json
